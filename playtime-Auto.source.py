@@ -11,7 +11,6 @@ class PlaytimeTracker:
         self.root.iconbitmap("playtime.ico")
 
         self.root.configure(bg="#333333")
-        self.text_color = "white"
         self.label_color = "#333333"
         self.button_color = "#666666"
 
@@ -32,35 +31,39 @@ class PlaytimeTracker:
         self.process_name.set("")
 
     def setup_ui(self):
-        tk.Label(root, text="Nickname:", bg=self.label_color, fg=self.text_color).grid(row=0, column=0, padx=10, pady=10)
+        tk.Label(root, text="Nickname:", bg=self.label_color, fg="white").grid(row=0, column=0, padx=10, pady=10)
         game_entry = tk.Entry(root, textvariable=self.current_game)
         game_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        tk.Label(root, text="Process Name:", bg=self.label_color, fg=self.text_color).grid(row=1, column=0, padx=10, pady=10)
+        tk.Label(root, text="Process Name:", bg=self.label_color, fg="white").grid(row=1, column=0, padx=10, pady=10)
         process_entry = tk.Entry(root, textvariable=self.process_name)
         process_entry.grid(row=1, column=1, padx=10, pady=10)
 
-        self.question_mark_label = tk.Label(root, text="?", cursor="question_arrow", bg=self.label_color, fg=self.text_color)
+        self.question_mark_label = tk.Label(root, text="?", cursor="question_arrow", bg=self.label_color, fg="white")
         self.question_mark_label.bind("<Button-1>", self.show_help_message)
         self.question_mark_label.place(x=100, y=65)
 
-        tk.Label(root, text="Previously Used:", bg=self.label_color, fg=self.text_color).grid(row=0, column=2)
+        tk.Label(root, text="Previously Used:", bg=self.label_color, fg="white").grid(row=0, column=2)
         self.game_nickname_listbox = tk.Listbox(root, height=5)
         self.game_nickname_listbox.grid(row=1, column=2)
 
-        self.status_label = tk.Label(root, text="Not Tracking", bg=self.label_color, fg=self.text_color)
+        self.icon_label = tk.Label(root, text="❓", cursor="hand2", font=("Helvetica", 10))
+        self.icon_label.place(x=10, y=300)
+        self.icon_label.bind("<Button-1>", self.show_about_message)
+
+        self.status_label = tk.Label(root, text="Not Tracking", bg=self.label_color, fg="red")
         self.status_label.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
 
-        self.tracking_button = tk.Button(root, text="Start Tracking", command=self.toggle_tracking, bg=self.button_color, fg=self.text_color)
+        self.tracking_button = tk.Button(root, text="Start Tracking", command=self.toggle_tracking, bg=self.button_color, fg="white")
         self.tracking_button.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
 
-        self.result_label = tk.Label(root, text="", bg=self.label_color, fg=self.text_color)
+        self.result_label = tk.Label(root, text="", bg=self.label_color, fg="white")
         self.result_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
 
-        self.quit_button = tk.Button(root, text="Quit", command=self.save_data_and_quit, bg=self.button_color, fg=self.text_color)
+        self.quit_button = tk.Button(root, text="Quit", command=self.save_data_and_quit, bg=self.button_color, fg="white")
         self.quit_button.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 
-        self.delete_game_button = tk.Button(root, text="Delete Item from List", command=self.delete_selected_game, bg=self.button_color, fg=self.text_color)
+        self.delete_game_button = tk.Button(root, text="Delete Item from List", command=self.delete_selected_game, bg=self.button_color, fg="white")
         self.delete_game_button.grid(row=2, column=2, padx=10, pady=10)
 
         root.protocol("WM_DELETE_WINDOW", self.save_data_and_quit)
@@ -73,30 +76,44 @@ class PlaytimeTracker:
             with open("playtime_data.txt", "w"):
                 pass
 
+    def show_about_message(self, event):
+        messagebox.showinfo("About", "This program was made by Rubix :)\nFind me at https://rubix.garden")
+
     def show_help_message(self, event):
         messagebox.showinfo("Help", "This field is for the process name of the program you want to track (e.g, GTA5.exe). It is case-sensitive.\n\nTo easily find the process name of a process, you can use Resource Monitor (or Task Manager > Right Click > Properties) if it's currently running.\n\nIf your program isn't currently running, you could look for the actual executable file for the program, but sometimes that can just be a launcher and not the actual name of the process.")
 
     def toggle_tracking(self):
-        if self.playing:
-            self.stop_tracking()
-        else:
-            game_nickname = self.current_game.get()
-            process_name = self.process_name.get()
-
-            if game_nickname and process_name:
-                self.game_nicknames[game_nickname] = process_name
-                if game_nickname not in self.games:
-                    self.games[game_nickname] = 0
-                    self.game_nickname_listbox.insert(tk.END, game_nickname)
-                self.save_data()
-                self.playing_game = game_nickname
-                self.start_time = time.time()
-                self.status_label.config(text=f"Tracking: {self.playing_game}")
-                self.tracking_button.config(text="Stop Tracking")
-                self.playing = True
+            if self.playing:
+                self.stop_tracking()
             else:
-                messagebox.showerror("Error", "Game nickname and process name cannot be empty.")
+                game_nickname = self.current_game.get()
+                process_name = self.process_name.get()
 
+                if game_nickname and process_name:
+                    if self.is_process_running(process_name):
+                        self.game_nicknames[game_nickname] = process_name
+                        if game_nickname not in self.games:
+                            self.games[game_nickname] = 0
+                            self.game_nickname_listbox.insert(tk.END, game_nickname)
+                        self.save_data()
+                        self.playing_game = game_nickname
+                        self.start_time = time.time()
+                        self.status_label.config(text=f"Tracking: {self.playing_game}", fg="green")
+                        self.tracking_button.config(text="Stop Tracking")
+                        self.playing = True
+                        self.process_check()  # Start process monitoring
+                    else:
+                        messagebox.showerror("Error", f"The process '{process_name}' is not running.")
+                else:
+                    messagebox.showerror("Error", "Game nickname and process name cannot be empty.")
+
+    def process_check(self):
+        if self.playing:
+            process_name = self.process_name.get()
+            if not self.is_process_running(process_name):
+                self.stop_tracking()
+            else:
+                self.root.after(1000, self.process_check)  # Check every second
 
     def start_tracking(self):
         game_nickname = self.current_game.get()
@@ -117,7 +134,7 @@ class PlaytimeTracker:
             end_time = time.time()
             elapsed_time = end_time - self.start_time
             self.add_playtime(self.playing_game, elapsed_time)
-            self.status_label.config(text="Not Tracking")
+            self.status_label.config(text="Not Tracking", fg="red")  # Set text color to red
             self.tracking_button.config(text="Start Tracking")
             self.playing = False
             self.playing_game = None
@@ -179,21 +196,6 @@ class PlaytimeTracker:
     def save_data_and_quit(self):
         self.save_data()
         self.root.quit()
-
-    def update_game_status(self):
-        for game, process_name in self.game_nicknames.items():
-            if self.is_process_running(process_name):
-                if self.playing_game != game:
-                    if not self.playing:
-                        self.current_game.set(game)
-                        self.process_name.set(process_name)
-                else:
-                    if not self.playing:
-                        self.start_tracking()
-            else:
-                if self.playing and self.playing_game == game:
-                    self.stop_tracking()
-        self.timer_id = self.root.after(1000, self.update_game_status)
 
     def is_process_running(self, process_name):
         for process in psutil.process_iter(attrs=['name']):
