@@ -8,7 +8,10 @@ class PlaytimeTracker:
     def __init__(self, root):
         self.root = root
         self.root.title("PlayTime")
-        self.root.iconbitmap("playtime.ico")
+        try:
+            self.root.iconbitmap("playtime.ico")
+        except tk.TclError:
+            pass
 
         self.root.configure(bg="#333333")
         self.label_color = "#333333"

@@ -11,3 +11,10 @@ Entirely coded in python with tkinter.
 - Nickname system so you can customise your list however you like
 - Supports all processes that run on windows
 - Colour coded tracking status 
+
+## Important:
+- I recommend downloading the program from the Releases section and extracting it and then running the program from within that folder. Doesn't matter where you put it and make a shortcut if you want.
+- I can promise you that this isn't a virus. You can find the source code in the GitHub repo, you can read through it and run the code directly through command prompt if you want to. <br>
+I'm just saying this because i know some anti-virus programs may false-flag the download.
+- Make sure you always have the .txt containing the playtime data in the same folder as the the .exe file because it's set up to read the file from the same directory, if you move it, the program will run but it won't have any of the data.<br>
+I also recommend keeping the .ico file in the same folder but the code is built to run if it isn't found anyway.
