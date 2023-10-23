@@ -7,10 +7,9 @@ import psutil
 class PlaytimeTracker:
     def __init__(self, root):
         self.root = root
-        self.root.title("Playtime Tracker")
+        self.root.title("PlayTime")
         self.root.iconbitmap("playtime.ico")
 
-        # Dark mode color scheme
         self.root.configure(bg="#333333")
         self.text_color = "white"
         self.label_color = "#333333"
