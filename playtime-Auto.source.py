@@ -32,7 +32,7 @@ class PlaytimeTracker:
         self.process_name.set("")
 
     def setup_ui(self):
-        tk.Label(root, text="Game Nickname:", bg=self.label_color, fg=self.text_color).grid(row=0, column=0, padx=10, pady=10)
+        tk.Label(root, text="Nickname:", bg=self.label_color, fg=self.text_color).grid(row=0, column=0, padx=10, pady=10)
         game_entry = tk.Entry(root, textvariable=self.current_game)
         game_entry.grid(row=0, column=1, padx=10, pady=10)
 
@@ -42,7 +42,7 @@ class PlaytimeTracker:
 
         self.question_mark_label = tk.Label(root, text="?", cursor="question_arrow", bg=self.label_color, fg=self.text_color)
         self.question_mark_label.bind("<Button-1>", self.show_help_message)
-        self.question_mark_label.place(x=111, y=65)
+        self.question_mark_label.place(x=100, y=65)
 
         tk.Label(root, text="Previously Used:", bg=self.label_color, fg=self.text_color).grid(row=0, column=2)
         self.game_nickname_listbox = tk.Listbox(root, height=5)
@@ -60,7 +60,7 @@ class PlaytimeTracker:
         self.quit_button = tk.Button(root, text="Quit", command=self.save_data_and_quit, bg=self.button_color, fg=self.text_color)
         self.quit_button.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
 
-        self.delete_game_button = tk.Button(root, text="Delete Game", command=self.delete_selected_game, bg=self.button_color, fg=self.text_color)
+        self.delete_game_button = tk.Button(root, text="Delete Item from List", command=self.delete_selected_game, bg=self.button_color, fg=self.text_color)
         self.delete_game_button.grid(row=2, column=2, padx=10, pady=10)
 
         root.protocol("WM_DELETE_WINDOW", self.save_data_and_quit)
@@ -134,7 +134,7 @@ class PlaytimeTracker:
         return f"{int(days)} days, {int(hours)} hours, {int(minutes)} minutes, {int(seconds)} seconds"
 
     def update_result_label(self):
-        result_text = "Playtime per game:\n"
+        result_text = "Playtime:\n"
         for game, playtime in self.games.items():
             formatted_time = self.format_time(playtime)
             result_text += f"{game}: {formatted_time}\n"
