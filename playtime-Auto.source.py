@@ -101,7 +101,7 @@ class PlaytimeTracker:
                         self.status_label.config(text=f"Tracking: {self.playing_game}", fg="green")
                         self.tracking_button.config(text="Stop Tracking")
                         self.playing = True
-                        self.process_check()  # Start process monitoring
+                        self.process_check()
                     else:
                         messagebox.showerror("Error", f"The process '{process_name}' is not running.")
                 else:
@@ -113,7 +113,7 @@ class PlaytimeTracker:
             if not self.is_process_running(process_name):
                 self.stop_tracking()
             else:
-                self.root.after(1000, self.process_check)  # Check every second
+                self.root.after(1000, self.process_check)
 
     def start_tracking(self):
         game_nickname = self.current_game.get()
@@ -134,7 +134,7 @@ class PlaytimeTracker:
             end_time = time.time()
             elapsed_time = end_time - self.start_time
             self.add_playtime(self.playing_game, elapsed_time)
-            self.status_label.config(text="Not Tracking", fg="red")  # Set text color to red
+            self.status_label.config(text="Not Tracking", fg="red")
             self.tracking_button.config(text="Start Tracking")
             self.playing = False
             self.playing_game = None

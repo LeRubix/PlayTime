@@ -10,3 +10,4 @@ Entirely coded in python with tkinter.
 - Dark mode
 - Nickname system so you can customise your list however you like
 - Supports all processes that run on windows
+- Colour coded tracking status 
