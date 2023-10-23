@@ -8,71 +8,66 @@ class PlaytimeTracker:
     def __init__(self, root):
         self.root = root
         self.root.title("Playtime Tracker")
-        root.iconbitmap("playtime.ico")
+        self.root.iconbitmap("playtime.ico")
+
+        # Dark mode color scheme
+        self.root.configure(bg="#333333")
+        self.text_color = "white"
+        self.label_color = "#333333"
+        self.button_color = "#666666"
 
         self.games = {}
-        self.game_nicknames = {}  
+        self.game_nicknames = {}
+        self.playing_game = None
         self.current_game = tk.StringVar()
         self.process_name = tk.StringVar()
         self.playing = False
-        self.last_save_time = time.time()
-        self.tracking_button = None
+        self.selected_game_nickname = None
 
-        tk.Label(root, text="Game Nickname:").grid(row=0, column=0, padx=10, pady=10)
-        game_entry = tk.Entry(root, textvariable=self.current_game)
-        game_entry.grid(row=0, column=1, padx=10, pady=10)
-
-        tk.Label(root, text="Process Name:").grid(row=1, column=0, padx=10, pady=10)
-        process_entry = tk.Entry(root, textvariable=self.process_name)
-        process_entry.grid(row=1, column=1, padx=10, pady=10)
-
-        self.question_mark_label = tk.Label(root, text="?", cursor="question_arrow")
-        self.question_mark_label.bind("<Button-1>", self.show_help_message)
-        self.question_mark_label.place(x=111, y=65)
-
-        tk.Label(root, text="Previously Used:").grid(row=0, column=2)
-        self.game_nickname_listbox = tk.Listbox(root, height=5)
-        self.game_nickname_listbox.grid(row=1, column=2)
-
-        self.status_label = tk.Label(root, text="Not Tracking")
-        self.status_label.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
-
-        self.tracking_button = tk.Button(root, text="Start Tracking", command=self.toggle_tracking)
-        self.tracking_button.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
-
-        self.result_label = tk.Label(root, text="")
-        self.result_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
-
-        self.quit_button = tk.Button(root, text="Quit", command=self.save_data_and_quit)
-        self.quit_button.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
-
+        self.setup_ui()
         self.check_and_create_data_file()
         self.load_data()
         self.update_result_label()
 
-        self.timer_id = self.root.after(1000, self.update_game_status)
+        self.current_game.set("")
+        self.process_name.set("")
 
-        self.playing_game = None
+    def setup_ui(self):
+        tk.Label(root, text="Game Nickname:", bg=self.label_color, fg=self.text_color).grid(row=0, column=0, padx=10, pady=10)
+        game_entry = tk.Entry(root, textvariable=self.current_game)
+        game_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        self.delete_game_button = tk.Button(root, text="Delete Game", command=self.delete_selected_game)
+        tk.Label(root, text="Process Name:", bg=self.label_color, fg=self.text_color).grid(row=1, column=0, padx=10, pady=10)
+        process_entry = tk.Entry(root, textvariable=self.process_name)
+        process_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        self.question_mark_label = tk.Label(root, text="?", cursor="question_arrow", bg=self.label_color, fg=self.text_color)
+        self.question_mark_label.bind("<Button-1>", self.show_help_message)
+        self.question_mark_label.place(x=111, y=65)
+
+        tk.Label(root, text="Previously Used:", bg=self.label_color, fg=self.text_color).grid(row=0, column=2)
+        self.game_nickname_listbox = tk.Listbox(root, height=5)
+        self.game_nickname_listbox.grid(row=1, column=2)
+
+        self.status_label = tk.Label(root, text="Not Tracking", bg=self.label_color, fg=self.text_color)
+        self.status_label.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+
+        self.tracking_button = tk.Button(root, text="Start Tracking", command=self.toggle_tracking, bg=self.button_color, fg=self.text_color)
+        self.tracking_button.grid(row=3, column=0, columnspan=3, padx=10, pady=10)
+
+        self.result_label = tk.Label(root, text="", bg=self.label_color, fg=self.text_color)
+        self.result_label.grid(row=4, column=0, columnspan=3, padx=10, pady=10)
+
+        self.quit_button = tk.Button(root, text="Quit", command=self.save_data_and_quit, bg=self.button_color, fg=self.text_color)
+        self.quit_button.grid(row=5, column=0, columnspan=3, padx=10, pady=10)
+
+        self.delete_game_button = tk.Button(root, text="Delete Game", command=self.delete_selected_game, bg=self.button_color, fg=self.text_color)
         self.delete_game_button.grid(row=2, column=2, padx=10, pady=10)
 
         root.protocol("WM_DELETE_WINDOW", self.save_data_and_quit)
 
         self.game_nickname_listbox.bind("<<ListboxSelect>>", self.select_game_nickname)
 
-        self.auto_start_tracking()
-
-    def auto_start_tracking(self):
-        selected_game = self.game_nickname_listbox.curselection()
-        if selected_game:
-            selected_game = self.game_nickname_listbox.get(selected_game[0])
-            if selected_game in self.game_nicknames:
-                game_nickname = selected_game
-                process_name = self.game_nicknames[game_nickname]
-                self.current_game.set(game_nickname)
-                self.process_name.set(process_name)
-                self.start_tracking()
 
     def check_and_create_data_file(self):
         if not os.path.exists("playtime_data.txt"):
@@ -88,17 +83,21 @@ class PlaytimeTracker:
         else:
             game_nickname = self.current_game.get()
             process_name = self.process_name.get()
-            self.game_nicknames[game_nickname] = process_name
-            if game_nickname not in self.games:
-                self.games[game_nickname] = 0
-                self.game_nickname_listbox.insert(tk.END, game_nickname)
-            self.save_data()
+
             if game_nickname and process_name:
+                self.game_nicknames[game_nickname] = process_name
+                if game_nickname not in self.games:
+                    self.games[game_nickname] = 0
+                    self.game_nickname_listbox.insert(tk.END, game_nickname)
+                self.save_data()
                 self.playing_game = game_nickname
                 self.start_time = time.time()
                 self.status_label.config(text=f"Tracking: {self.playing_game}")
                 self.tracking_button.config(text="Stop Tracking")
                 self.playing = True
+            else:
+                messagebox.showerror("Error", "Game nickname and process name cannot be empty.")
+
 
     def start_tracking(self):
         game_nickname = self.current_game.get()
@@ -113,7 +112,6 @@ class PlaytimeTracker:
             self.start_time = time.time()
         else:
             messagebox.showerror("Error", f"The process '{process_name}' is not running.")
-
 
     def stop_tracking(self):
         if self.playing:
@@ -141,19 +139,21 @@ class PlaytimeTracker:
         for game, playtime in self.games.items():
             formatted_time = self.format_time(playtime)
             result_text += f"{game}: {formatted_time}\n"
-
         self.result_label.config(text=result_text)
 
     def select_game_nickname(self, event):
-        selected_game = self.game_nickname_listbox.get(self.game_nickname_listbox.curselection())
-        if selected_game in self.game_nicknames:
-            game_nickname = selected_game
-            process_name = self.game_nicknames[game_nickname]
-            self.current_game.set(game_nickname)
-            self.process_name.set(process_name)
-            self.start_tracking()
+        selected_items = self.game_nickname_listbox.curselection()
+        if selected_items: 
+            selected_game = self.game_nickname_listbox.get(selected_items[0])
+            if selected_game in self.game_nicknames:
+                self.selected_game_nickname = selected_game
+                game_nickname = selected_game
+                process_name = self.game_nicknames[game_nickname]
+                self.current_game.set(game_nickname)
+                self.process_name.set(process_name)
 
     def load_data(self):
+        self.game_nickname_listbox.selection_clear(0, tk.END)
         try:
             with open("playtime_data.txt", "r") as file:
                 data = file.readlines()
@@ -201,7 +201,7 @@ class PlaytimeTracker:
             if process.info['name'] == process_name:
                 return True
         return False
-    
+
     def delete_selected_game(self):
         selected_game = self.game_nickname_listbox.get(tk.ACTIVE)
         if selected_game:
