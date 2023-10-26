@@ -3,6 +3,7 @@ import time
 import os
 from tkinter import messagebox
 import psutil
+import threading
 
 class PlaytimeTracker:
     def __init__(self, root):
@@ -24,6 +25,7 @@ class PlaytimeTracker:
         self.process_name = tk.StringVar()
         self.playing = False
         self.selected_game_nickname = None
+        self.check_thread = None
 
         self.setup_ui()
         self.check_and_create_data_file()
@@ -32,6 +34,10 @@ class PlaytimeTracker:
 
         self.current_game.set("")
         self.process_name.set("")
+
+        self.first_run_flag = not os.path.exists("first_run.flag")
+        if self.first_run_flag:
+            self.show_first_run_message()
 
     def setup_ui(self):
         tk.Label(root, text="Nickname:", bg=self.label_color, fg="white").grid(row=0, column=0, padx=10, pady=10)
@@ -79,44 +85,61 @@ class PlaytimeTracker:
             with open("playtime_data.txt", "w"):
                 pass
 
+    def show_first_run_message(self):
+        messagebox.showinfo("Welcome", "Thanks for using PlayTime!\n\nIf you want to track anything manually (without defining a process), simply enter 'manual' or just a space into the process name box.\n\nAlso, keep the playtime data .txt file in the same folder as the program when you're using it.")
+        with open("first_run.flag", "w"):
+            pass
+
     def show_about_message(self, event):
         messagebox.showinfo("About", "This program was made by Rubix :)\nFind me at https://rubix.garden")
 
     def show_help_message(self, event):
-        messagebox.showinfo("Help", "This field is for the process name of the program you want to track (e.g, GTA5.exe). It is case-sensitive.\n\nTo easily find the process name of a process, you can use Resource Monitor (or Task Manager > Right Click > Properties) if it's currently running.\n\nIf your program isn't currently running, you could look for the actual executable file for the program, but sometimes that can just be a launcher and not the actual name of the process.")
+        messagebox.showinfo("Help", "This field is for the process name of the program you want to track (e.g, GTA5.exe). It is case-sensitive.\n\nTo easily find the process name of a process, you can use Resource Monitor (or Task Manager > Right Click > Properties) if it's currently running.\n\nIf your program isn't running yet, you could look for the actual executable file for the program, but sometimes that can just be a launcher and not the actual name of the process.\n\nUSE THE PROCESS NAME 'manual' OR JUST A SPACE IF YOU WANT TO TRACK SOMETHING WITHOUT DEFINING A PROCESS!")
 
     def toggle_tracking(self):
-            if self.playing:
-                self.stop_tracking()
-            else:
-                game_nickname = self.current_game.get()
-                process_name = self.process_name.get()
+        if self.playing:
+            self.stop_tracking()
+        else:
+            game_nickname = self.current_game.get()
+            process_name = self.process_name.get()
 
-                if game_nickname and process_name:
-                    if self.is_process_running(process_name):
-                        self.game_nicknames[game_nickname] = process_name
-                        if game_nickname not in self.games:
-                            self.games[game_nickname] = 0
-                            self.game_nickname_listbox.insert(tk.END, game_nickname)
-                        self.save_data()
-                        self.playing_game = game_nickname
-                        self.start_time = time.time()
-                        self.status_label.config(text=f"Tracking: {self.playing_game}", fg="green")
-                        self.tracking_button.config(text="Stop Tracking")
-                        self.playing = True
-                        self.process_check()
-                    else:
-                        messagebox.showerror("Error", f"The process '{process_name}' is not running.")
+            if game_nickname and process_name:
+                if process_name.lower() == "manual" or " ":
+                    self.game_nicknames[game_nickname] = "Manual"
+                    if game_nickname not in self.games:
+                        self.games[game_nickname] = 0
+                        self.game_nickname_listbox.insert(tk.END, game_nickname)
+                    self.save_data()
+                    self.playing_game = game_nickname
+                    self.start_time = time.time()
+                    self.status_label.config(text=f"Tracking: {self.playing_game}", fg="green")
+                    self.tracking_button.config(text="Stop Tracking")
+                    self.playing = True
+                elif self.is_process_running(process_name):
+                    self.game_nicknames[game_nickname] = process_name
+                    if game_nickname not in self.games:
+                        self.games[game_nickname] = 0
+                        self.game_nickname_listbox.insert(tk.END, game_nickname)
+                    self.save_data()
+                    self.playing_game = game_nickname
+                    self.start_time = time.time()
+                    self.status_label.config(text=f"Tracking: {self.playing_game}", fg="green")
+                    self.tracking_button.config(text="Stop Tracking")
+                    self.playing = True
+                    self.check_thread = threading.Thread(target=self.process_check)
+                    self.check_thread.daemon = True
+                    self.check_thread.start()
                 else:
-                    messagebox.showerror("Error", "Game nickname and process name cannot be empty.")
+                    messagebox.showerror("Error", f"The process '{process_name}' is not running.")
+            else:
+                messagebox.showerror("Error", "Game nickname and process name cannot be empty")
 
     def process_check(self):
-        if self.playing:
-            process_name = self.process_name.get()
+        process_name = self.process_name.get()
+        while self.playing:
             if not self.is_process_running(process_name):
                 self.stop_tracking()
-            else:
-                self.root.after(1000, self.process_check)
+            time.sleep(1)
 
     def start_tracking(self):
         game_nickname = self.current_game.get()
@@ -134,6 +157,9 @@ class PlaytimeTracker:
 
     def stop_tracking(self):
         if self.playing:
+            self.playing = False
+            if self.check_thread:
+                self.check_thread.join()
             end_time = time.time()
             elapsed_time = end_time - self.start_time
             self.add_playtime(self.playing_game, elapsed_time)
