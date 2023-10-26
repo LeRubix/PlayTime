@@ -11,6 +11,7 @@ Entirely coded in python with tkinter.
 - Nickname system so you can customise your list however you like
 - Supports all processes that run on windows
 - Colour coded tracking status 
+- Manual tracking option (doesn't need a specified process)
 
 ## Important:
 - I recommend downloading the program from the Releases section and extracting it and then running the program from within that folder. Doesn't matter where you put it and make a shortcut if you want.
