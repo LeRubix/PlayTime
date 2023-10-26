@@ -39,6 +39,8 @@ class PlaytimeTracker:
         if self.first_run_flag:
             self.show_first_run_message()
 
+        self.root.protocol("WM_DELETE_WINDOW", self.save_data_and_quit)
+
     def setup_ui(self):
         tk.Label(root, text="Nickname:", bg=self.label_color, fg="white").grid(row=0, column=0, padx=10, pady=10)
         game_entry = tk.Entry(root, textvariable=self.current_game)
@@ -223,6 +225,7 @@ class PlaytimeTracker:
                 file.write(f"{game}: {process_name}: {playtime}\n")
 
     def save_data_and_quit(self):
+        self.stop_tracking()
         self.save_data()
         self.root.quit()
 

@@ -12,6 +12,7 @@ Entirely coded in python with tkinter.
 - Supports all processes that run on windows
 - Colour coded tracking status 
 - Manual tracking option (doesn't need a specified process)
+- Automatically saves upon quitting in case you forget to stop tracking beforehand
 
 ## Important:
 - I recommend downloading the program from the Releases section and extracting it and then running the program from within that folder. Doesn't matter where you put it and make a shortcut if you want.
