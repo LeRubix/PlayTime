@@ -81,7 +81,6 @@ class PlaytimeTracker:
 
         self.game_nickname_listbox.bind("<<ListboxSelect>>", self.select_game_nickname)
 
-
     def check_and_create_data_file(self):
         if not os.path.exists("playtime_data.txt"):
             with open("playtime_data.txt", "w"):
@@ -106,7 +105,7 @@ class PlaytimeTracker:
             process_name = self.process_name.get()
 
             if game_nickname and process_name:
-                if process_name.lower() == "manual" or " ":
+                if process_name.lower() == "manual" or process_name.isspace():  # Fixed condition
                     self.game_nicknames[game_nickname] = "Manual"
                     if game_nickname not in self.games:
                         self.games[game_nickname] = 0
@@ -141,6 +140,7 @@ class PlaytimeTracker:
         while self.playing:
             if not self.is_process_running(process_name):
                 self.stop_tracking()
+                break
             time.sleep(1)
 
     def start_tracking(self):
@@ -160,8 +160,6 @@ class PlaytimeTracker:
     def stop_tracking(self):
         if self.playing:
             self.playing = False
-            if self.check_thread:
-                self.check_thread.join()
             end_time = time.time()
             elapsed_time = end_time - self.start_time
             self.add_playtime(self.playing_game, elapsed_time)
