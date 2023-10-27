@@ -105,7 +105,7 @@ class PlaytimeTracker:
             process_name = self.process_name.get()
 
             if game_nickname and process_name:
-                if process_name.lower() == "manual" or process_name.isspace():  # Fixed condition
+                if process_name.lower() == "manual" or process_name.isspace():
                     self.game_nicknames[game_nickname] = "Manual"
                     if game_nickname not in self.games:
                         self.games[game_nickname] = 0
