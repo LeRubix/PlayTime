@@ -1,3 +1,4 @@
+from PIL import Image, ImageDraw, ImageFont
 import tkinter as tk
 import time
 import os
@@ -10,7 +11,7 @@ class PlaytimeTracker:
         self.root = root
         self.root.title("PlayTime")
         try:
-            self.root.iconbitmap("playtime.ico")
+            self.root.iconbitmap("assets/playtime.ico")
         except tk.TclError:
             pass
 
@@ -58,9 +59,9 @@ class PlaytimeTracker:
         self.game_nickname_listbox = tk.Listbox(root, height=5)
         self.game_nickname_listbox.grid(row=1, column=2)
 
-        self.icon_label = tk.Label(root, text="❓", cursor="hand2", font=("Helvetica", 10))
-        self.icon_label.place(x=10, y=300)
-        self.icon_label.bind("<Button-1>", self.show_about_message)
+        #self.icon_label = tk.Label(root, text="❓", cursor="hand2", font=("Helvetica", 10))
+        #self.icon_label.place(x=10, y=300)
+        #self.icon_label.bind("<Button-1>", self.show_about_message)
 
         self.status_label = tk.Label(root, text="Not Tracking", bg=self.label_color, fg="red")
         self.status_label.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
@@ -81,6 +82,9 @@ class PlaytimeTracker:
 
         self.game_nickname_listbox.bind("<<ListboxSelect>>", self.select_game_nickname)
 
+        self.export_button = tk.Button(root, text="Export Data to Image", command=self.export_playtime_data, bg=self.button_color, fg="white")
+        self.export_button.grid(row=5, column=2, columnspan=3, padx=10, pady=5)
+
     def check_and_create_data_file(self):
         if not os.path.exists("playtime_data.txt"):
             with open("playtime_data.txt", "w"):
@@ -91,8 +95,8 @@ class PlaytimeTracker:
         with open("first_run.flag", "w"):
             pass
 
-    def show_about_message(self, event):
-        messagebox.showinfo("About", "This program was made by Rubix :)\nFind me at https://rubix.garden")
+    #def show_about_message(self, event):
+        #messagebox.showinfo("About", "This program was made by Rubix :)\nFind me at https://rubix.garden")
 
     def show_help_message(self, event):
         messagebox.showinfo("Help", "This field is for the process name of the program you want to track (e.g, GTA5.exe). It is case-sensitive.\n\nTo easily find the process name of a process, you can use Resource Monitor (or Task Manager > Right Click > Properties) if it's currently running.\n\nIf your program isn't running yet, you could look for the actual executable file for the program, but sometimes that can just be a launcher and not the actual name of the process.\n\nUSE THE PROCESS NAME 'manual' OR JUST A SPACE IF YOU WANT TO TRACK SOMETHING WITHOUT DEFINING A PROCESS!")
@@ -248,6 +252,51 @@ class PlaytimeTracker:
         self.game_nickname_listbox.delete(tk.ACTIVE)
         self.update_result_label()
         self.save_data()
+
+    def export_playtime_data(self):
+        # Get the playtime data
+        playtime_data = self.get_playtime_data()
+
+        # Update file paths to the "assets" subfolder
+        background_path = "assets/PTExport.png"
+        font_path = "assets/Qaz.ttf"
+
+        if not os.path.exists(font_path):
+            messagebox.showerror("Font Error", f"Font file '{font_path}' not found. Make sure it's in the 'assets' subfolder.")
+            return
+
+        if not os.path.exists(background_path):
+            messagebox.showerror("Background Image Error", f"Background image file '{background_path}' not found. Make sure it's in the 'assets' subfolder.")
+            return
+        
+        # Load the background image
+        background_image = Image.open(background_path)
+
+        # Create a copy of the background image
+        image = background_image.copy()
+
+        # Load the custom font
+        font_size = 24
+        font = ImageFont.truetype(font_path, font_size)
+
+        # Create a drawing context
+        draw = ImageDraw.Draw(image)
+
+        # Draw the playtime data on the image with bullet points
+        y_offset = 10
+        bullet_point = u"\u2022"
+        for game, playtime in playtime_data.items():
+            formatted_time = self.format_time(playtime)
+            text_position = (30, y_offset)
+            draw.text(text_position, f"{bullet_point} {game}: {formatted_time}", fill="white", font=font)
+            y_offset += 30  # Adjusted for a larger font size
+
+        # Save the image
+        image.save("playtime_data.png")
+        messagebox.showinfo("Export Successful", "Playtime data exported as 'playtime_data.png")
+
+    def get_playtime_data(self):
+        return self.games.copy()
 
 if __name__ == "__main__":
     root = tk.Tk()
