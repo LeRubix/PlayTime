@@ -36,7 +36,7 @@ class PlaytimeTracker:
         self.current_game.set("")
         self.process_name.set("")
 
-        self.first_run_flag = not os.path.exists("first_run.flag")
+        self.first_run_flag = not os.path.exists("assets/first_run.flag")
         if self.first_run_flag:
             self.show_first_run_message()
 
@@ -92,7 +92,7 @@ class PlaytimeTracker:
 
     def show_first_run_message(self):
         messagebox.showinfo("Welcome", "Thanks for using PlayTime!\n\nIf you want to track anything manually (without defining a process), simply enter 'manual' or just a space into the process name box.\n\nAlso, keep the playtime data .txt file in the same folder as the program when you're using it.")
-        with open("first_run.flag", "w"):
+        with open("assets/first_run.flag", "w"):
             pass
 
     #def show_about_message(self, event):
@@ -254,10 +254,8 @@ class PlaytimeTracker:
         self.save_data()
 
     def export_playtime_data(self):
-        # Get the playtime data
         playtime_data = self.get_playtime_data()
 
-        # Update file paths to the "assets" subfolder
         background_path = "assets/PTExport.png"
         font_path = "assets/Qaz.ttf"
 
@@ -269,31 +267,26 @@ class PlaytimeTracker:
             messagebox.showerror("Background Image Error", f"Background image file '{background_path}' not found. Make sure it's in the 'assets' subfolder.")
             return
         
-        # Load the background image
         background_image = Image.open(background_path)
 
-        # Create a copy of the background image
         image = background_image.copy()
 
-        # Load the custom font
         font_size = 24
         font = ImageFont.truetype(font_path, font_size)
 
-        # Create a drawing context
         draw = ImageDraw.Draw(image)
 
-        # Draw the playtime data on the image with bullet points
         y_offset = 10
         bullet_point = u"\u2022"
         for game, playtime in playtime_data.items():
             formatted_time = self.format_time(playtime)
             text_position = (30, y_offset)
             draw.text(text_position, f"{bullet_point} {game}: {formatted_time}", fill="white", font=font)
-            y_offset += 30  # Adjusted for a larger font size
+            y_offset += 30
 
-        # Save the image
         image.save("playtime_data.png")
         messagebox.showinfo("Export Successful", "Playtime data exported as 'playtime_data.png")
+
 
     def get_playtime_data(self):
         return self.games.copy()
