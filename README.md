@@ -21,3 +21,5 @@ Entirely coded in python with tkinter.
 I'm just saying this because i know some anti-virus programs may false-flag the download.
 - Make sure you always have the .txt containing the playtime data in the same folder as the the .exe file because it's set up to read the file from the same directory, if you move it, the program will run but it won't have any of the data.<br>
 I also recommend keeping the assets folder in the same folder as playtime.exe
+<br><br>
+![image](https://github.com/user-attachments/assets/963933c7-1dc9-42c1-9881-82a932c45bb5)
